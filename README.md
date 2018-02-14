@@ -59,7 +59,17 @@ In the above command, `/dev/sdX` is the path to your USB, where `X` is the prope
 
 #### Testnet LiveUSB
 
-The first part of preparing the testnet LiveUSB is the same.
+While building the ISO, a prompt will ask to build the Kovri testnet.
+By default, the testnet will be built, so just press enter.
+
+If you wish to customize testnet environment variables, edit `build_kovri_testnet()` in
+`path/to/arkeo/airootfs/root/customize_airootfs.sh`.
+
+You may be prompted to destroy an existing testnet on your first build, doing so will not affect your testnet setup.
+
+If you wish to keep an existing testnet from a previous build, enter "n" when prompted to destroy an existing testnet.
+
+The final preparation of the testnet LiveUSB is the same as the development LiveUSB.
 
 ##### WARNING: dd can overwrite your system drive, ensure you write to the proper drive
 
@@ -70,45 +80,3 @@ $ cd /path/to/arkeo
 ```
 
 In the above command, `/dev/sdX` is the path to your USB, where `X` is the proper drive letter.
-
-Now you need to add a partition to the USB for the testnet Docker images:
-```
-# fdisk /dev/sdX
-Command (m for help): n
-Command action
-p
-[enter] # select the default beginning sector for the new partition
-+2G     # make a 2GiB paritition
-w       # write your changes to the disk
-# mkfs.ext4 -O "^has_journal" /dev/sdXN # create filesystem, X = drive letter, N = partition number
-```
-
-After creating the partition, you will need to mount it after booting the LiveUSB:
-```
-press CTRL+ALT+F2 to open tty2
-login as root (no password by default)
-# mkdir /tmp/docker
-# mount /dev/sdXN /tmp/docker # X = drive letter, N = partition number
-```
-
-Docker needs to know about your new partition:
-```
-# vim /etc/docker/daemon.json
-...
-"graph" : "/tmp/docker"
-...
-```
-
-Changing the `graph` parameter tells Docker where to store images.
-
-Now start the daemon:
-```
-# systemctl start docker
-```
-
-You can now switch back to the `kovri` user in `tty1`, and create the testnet:
-```
-press CTRL+ALT+F1 to open tty1
-$ cd /tmp/kovri
-$ ./contrib/testnet/testnet.sh create
-```
