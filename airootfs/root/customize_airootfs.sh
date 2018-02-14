@@ -60,6 +60,7 @@ systemctl poweroff -i
 # $1 - message
 # $2 - varname to set
 # $3 - function or string to execute if var true
+# @author - anonimal
 read_bool_input()
 {
   if [[ ! ${!2} ]]; then
@@ -92,7 +93,11 @@ setup_kovri()
 
   # Build Kovri testnet by default
   BUILD_KOVRI_TESTNET=true
-  read_bool_input "Setup Kovri testnet?" BUILD_KOVRI_TESTNET "build_kovri_testnet"
+  read_bool_input "Setup Kovri testnet?" BUILD_KOVRI_TESTNET ""
+
+  if [[ $BUILD_KOVRI_TESTNET = true ]]; then
+    build_kovri_testnet
+  fi
 }
 
 build_kovri_testnet()
