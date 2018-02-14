@@ -39,9 +39,10 @@ usermod -s /usr/bin/zsh root
 cp -aT /etc/skel/ /root/
 chmod 700 /root
 
-! id kovri && useradd -m -s /bin/bash -G docker kovri
+! id kovri && useradd -m -s /bin/bash --uid 1337 --gid 1337 -G docker kovri
 cp -aT /etc/skel/ /home/kovri
 chmod 700 /home/kovri
+chown -R kovri:kovri /home/kovri
 
 sed -i 's/#\(PermitRootLogin \).\+/\1yes/' /etc/ssh/sshd_config
 sed -i "s/#Server/Server/g" /etc/pacman.d/mirrorlist
