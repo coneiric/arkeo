@@ -1,0 +1,14 @@
+#!/bin/bash
+
+KOVRI_IMAGE="kovri:latest" \
+KOVRI_WEB_IMAGE="httpd:2.4" \
+KOVRI_DOCKERFILE="Dockerfile.arch" \
+KOVRI_WEB_DOCKERFILE="Dockerfile.apache" \
+KOVRI_REPO="/tmp/kovri" \
+KOVRI_WORKSPACE="/home/kovri/testnet" \
+KOVRI_UTIL_ARGS="--floodfill 1 --bandwidth P" \
+KOVRI_BIN_ARGS="--floodfill 1 --enable-su3-verification 0 --log-auto-flush 1 --enable-https 0" \
+KOVRI_FW_BIN_ARGS="--floodfill 0 --enable-su3-verification 0 --log-auto-flush 1" \
+KOVRI_NETWORK="kovri-testnet" \
+network_octets="172.18.0" \
+/tmp/kovri/contrib/testnet/testnet.sh create

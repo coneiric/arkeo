@@ -1,11 +1,10 @@
 {
   "storage-driver": "overlay2",
-  "graph": "/home/kovri/testnet",
+  "data-root": "/home/kovri/testnet",
   "log-driver": "json-file",
   "log-opts": {
     "max-size": "10m",
     "max-file": "2"
   },
-  "debug": false,
-  "userns-remap": "1337:1337"
+  "debug": false
 }

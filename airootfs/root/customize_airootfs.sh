@@ -39,7 +39,9 @@ usermod -s /usr/bin/zsh root
 cp -aT /etc/skel/ /root/
 chmod 700 /root
 
-! id kovri && useradd -m -s /bin/bash --uid 1337 -G docker kovri
+# Ensure host kovri user has same UID as docker container user
+# - needed for shared files between containers and host
+! id kovri && useradd -m -s /bin/bash --uid 1000 -G docker kovri
 cp -aT /etc/skel/ /home/kovri
 chmod 700 /home/kovri
 
@@ -96,29 +98,34 @@ setup_kovri()
   chown -R kovri:kovri /home/kovri
 
   # Build Kovri testnet by default
-  BUILD_KOVRI_TESTNET=true
-  read_bool_input "Setup Kovri testnet?" BUILD_KOVRI_TESTNET ""
-
-  if [[ $BUILD_KOVRI_TESTNET = true ]]; then
-    systemctl start docker
-    build_kovri_testnet
-  fi
+  SETUP_KOVRI_TESTNET=""
+  read_bool_input "Setup Kovri testnet?" SETUP_KOVRI_TESTNET "setup_kovri_testnet"
 }
 
-build_kovri_testnet()
+setup_kovri_testnet()
 {
-  sudo -u kovri bash -c "KOVRI_IMAGE=\"kovri:latest\" \
-                         KOVRI_WEB_IMAGE=\"httpd:2.4\" \
-                         KOVRI_DOCKERFILE=\"Dockerfile.arch\" \
-                         KOVRI_WEB_DOCKERFILE=\"Dockerfile.apache\" \
-                         KOVRI_REPO=\"/tmp/kovri\" \
-                         KOVRI_WORKSPACE=\"/home/kovri/testnet\" \
-                         KOVRI_UTIL_ARGS=\"--floodfill 1 --bandwidth P\" \
-                         KOVRI_BIN_ARGS=\"--floodfill 1 --enable-su3-verification 0 --log-auto-flush 1 --enable-https 0\" \
-                         KOVRI_FW_BIN_ARGS=\"--floodfill 0 --enable-su3-verification 0 --log-auto-flush 1\" \
-                         KOVRI_NETWORK=\"kovri-testnet\" \
-                         network_octets=\"172.18.0\" \
-                         /tmp/kovri/contrib/testnet/testnet.sh create"
+  echo ""
+  echo "Setting up testnet directory for docker images"
+  echo ""
+
+  if [[ ! -d /home/kovri/testnet ]]; then
+    # Make testnet docker image directory
+    mkdir /home/kovri/testnet
+  fi
+
+  # Set proper ownership
+  chown -R kovri:kovri /home/kovri/testnet
+
+  echo "Testnet directory setup successfully!"
+  echo ""
+  echo "IMPORTANT: Finish building Kovri testnet after installing Arkeo to disk"
+  echo ""
+  echo "Once Arkeo is installed, run the following command as the kovri user:"
+  echo "  $ /home/kovri/build-kovri-testnet"
+  echo ""
+
+  CONTINUE_BUILD=""
+  read_bool_input "Continue building Arkeo?" CONTINUE_BUILD ""
 }
 
 setup_monero()

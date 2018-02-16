@@ -59,15 +59,13 @@ In the above command, `/dev/sdX` is the path to your USB, where `X` is the prope
 
 #### Testnet LiveUSB
 
-While building the ISO, a prompt will ask to build the Kovri testnet.
-By default, the testnet will be built, so just press enter.
+Currently, the Kovri testnet relies on Docker, which will not run from a LiveUSB.
 
-If you wish to customize testnet environment variables, edit `build_kovri_testnet()` in
-`path/to/arkeo/airootfs/root/customize_airootfs.sh`.
+Docker does not support running on top of an OverlayFS base filesystem.
+If you wish to build the Docker-based Kovri testnet, please [install Arkeo to
+disk](https://wiki.archlinux.org/index.php/Archiso#Installation_without_Internet_access).
 
-You may be prompted to destroy an existing testnet on your first build, doing so will not affect your testnet setup.
-
-If you wish to keep an existing testnet from a previous build, enter "n" when prompted to destroy an existing testnet.
+Work is in progress to build a Kovri testnet without Docker.
 
 The final preparation of the testnet LiveUSB is the same as the development LiveUSB.
 
