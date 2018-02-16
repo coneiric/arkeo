@@ -42,7 +42,6 @@ chmod 700 /root
 ! id kovri && useradd -m -s /bin/bash --uid 1337 -G docker kovri
 cp -aT /etc/skel/ /home/kovri
 chmod 700 /home/kovri
-chown -R kovri:kovri /home/kovri
 
 sed -i 's/#\(PermitRootLogin \).\+/\1yes/' /etc/ssh/sshd_config
 sed -i "s/#Server/Server/g" /etc/pacman.d/mirrorlist
@@ -89,6 +88,11 @@ setup_kovri()
   
   # Build and install Kovri
   cd /usr/src/kovri && KOVRI_DATA_PATH=/home/kovri/.kovri make -j$(nproc) release && make install
+
+  # Link kovri repo
+  ln -sf /usr/src/kovri /tmp/kovri
+
+  # Set proper ownership of the home directory
   chown -R kovri:kovri /home/kovri
 
   # Build Kovri testnet by default
@@ -96,24 +100,25 @@ setup_kovri()
   read_bool_input "Setup Kovri testnet?" BUILD_KOVRI_TESTNET ""
 
   if [[ $BUILD_KOVRI_TESTNET = true ]]; then
+    systemctl start docker
     build_kovri_testnet
   fi
 }
 
 build_kovri_testnet()
 {
-    export KOVRI_IMAGE="kovri:latest"
-    export KOVRI_WEB_IMAGE="httpd:2.4"
-    export KOVRI_DOCKERFILE="Dockerfile.arch"
-    export KOVRI_WEB_DOCKERFILE="Dockerfile.apache"
-    export KOVRI_WORKSPACE="/home/kovri/testnet"
-    export KOVRI_UTIL_ARGS="--floodfill 1 --bandwidth P"
-    export KOVRI_BIN_ARGS="--floodfill 1 --enable-su3-verification 0 --log-auto-flush 1 --enable-https 0"
-    export KOVRI_FW_BIN_ARGS="--floodfill 0 --enable-su3-verification 0 --log-auto-flush 1"
-    export KOVRI_NETWORK="kovri-testnet"
-    export network_octets="172.18.0"
-
-    sudo -u kovri bash -c "/tmp/kovri/contrib/testnet/testnet.sh create"
+  sudo -u kovri bash -c "KOVRI_IMAGE=\"kovri:latest\" \
+                         KOVRI_WEB_IMAGE=\"httpd:2.4\" \
+                         KOVRI_DOCKERFILE=\"Dockerfile.arch\" \
+                         KOVRI_WEB_DOCKERFILE=\"Dockerfile.apache\" \
+                         KOVRI_REPO=\"/tmp/kovri\" \
+                         KOVRI_WORKSPACE=\"/home/kovri/testnet\" \
+                         KOVRI_UTIL_ARGS=\"--floodfill 1 --bandwidth P\" \
+                         KOVRI_BIN_ARGS=\"--floodfill 1 --enable-su3-verification 0 --log-auto-flush 1 --enable-https 0\" \
+                         KOVRI_FW_BIN_ARGS=\"--floodfill 0 --enable-su3-verification 0 --log-auto-flush 1\" \
+                         KOVRI_NETWORK=\"kovri-testnet\" \
+                         network_octets=\"172.18.0\" \
+                         /tmp/kovri/contrib/testnet/testnet.sh create"
 }
 
 setup_monero()
