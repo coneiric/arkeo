@@ -12,7 +12,8 @@ Start()
 
   monerod --config-file "${conf_file}" \
           --log-file "${log_file}" \
-          --testnet-data-dir "${data_dir}"
+          --testnet-data-dir "${data_dir}" \
+          --detach
 }
 
 # Start default monero testnet nodes
