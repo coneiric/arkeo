@@ -11,6 +11,17 @@ unbound
 xz
 zeromq
 
+# Monero & Kovri GUI
+qt5-declarative
+qt5-graphicaleffects
+qt5-location
+qt5-quickcontrols
+qt5-tools
+qt5-webchannel
+qt5-webengine
+qt5-xmlpatterns
+qt5-wayland
+
 # Optional dependencies
 clang
 doxygen
@@ -25,6 +36,11 @@ zip
 
 # Utilities
 cryptsetup
+irssi
+irssi-otr
 gdb
+gnome-terminal
+sway
 tmux
 vim
+wayland
