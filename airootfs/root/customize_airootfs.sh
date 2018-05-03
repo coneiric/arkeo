@@ -39,11 +39,13 @@ usermod -s /usr/bin/zsh root
 cp -aT /etc/skel/ /root/
 chmod 700 /root
 
-# Ensure host nomado has same UID as docker container user
+DEFAULT_USER="nomado"
+
+# Ensure host $DEFAULT_USER has same UID as docker container user
 # - needed for shared files between containers and host
-! id nomado && useradd -m -s /bin/bash --uid 1000 -G docker nomado
-cp -aT /etc/skel/ /home/nomado
-chmod 700 /home/nomado
+! id $DEFAULT_USER && useradd -m -s /bin/bash --uid 1000 -G docker $DEFAULT_USER
+cp -aT /etc/skel/ /home/$DEFAULT_USER
+chmod 700 /home/$DEFAULT_USER
 
 sed -i 's/#\(PermitRootLogin \).\+/\1yes/' /etc/ssh/sshd_config
 sed -i "s/#Server/Server/g" /etc/pacman.d/mirrorlist
@@ -61,7 +63,8 @@ systemctl poweroff -i
 # $1 - message
 # $2 - varname to set
 # $3 - function or string to execute if var true
-read_bool_input()  # @author - anonimal
+# @author - anonimal
+read_bool_input()
 {
   if [[ ! ${!2} ]]; then
     read -r -p "$1 [Y/n] " REPLY
@@ -80,8 +83,14 @@ read_bool_input()  # @author - anonimal
   fi
 }
 
+install_custom_packages()
+{
+  HARD_KERNEL=""
+  read_bool_input "Install a hardened kernel?" HARD_KERNEL "pacman -Sy linux-hardened"
+}
+
 # Clone, compile, and install Kovri
-setup_kovri()  # @author - oneiric
+setup_kovri()
 {
   # Clone latest Kovri repo if it doesn't exist
   if [[ ! -d /usr/src/kovri ]]; then
@@ -90,13 +99,13 @@ setup_kovri()  # @author - oneiric
   
   # Build and install Kovri
   cd /usr/src/kovri && git pull
-  KOVRI_DATA_PATH=/home/nomado/.kovri make -j$(nproc) util && make install
+  KOVRI_DATA_PATH=/home/$DEFAULT_USER/.kovri make -j$(nproc) util && make install
 
   # Link kovri repo
   ln -sf /usr/src/kovri /tmp/kovri
 
   # Set proper ownership of the home directory
-  chown -R nomado:nomado /home/nomado
+  chown -R $DEFAULT_USER:$DEFAULT_USER /home/$DEFAULT_USER
 
   # Build Kovri testnet by default
   SETUP_KOVRI_TESTNET=""
@@ -104,7 +113,7 @@ setup_kovri()  # @author - oneiric
 }
 
 # Initial setup of Kovri testnet
-setup_kovri_testnet() # @author - oneiric
+setup_kovri_testnet()
 {
   echo ""
   echo "Setting up testnet directory for docker images"
@@ -112,18 +121,18 @@ setup_kovri_testnet() # @author - oneiric
 
   if [[ ! -d /home/kovri/testnet ]]; then
     # Make testnet docker image directory
-    mkdir /home/nomado/testnet
+    mkdir /home/$DEFAULT_USER/testnet
   fi
 
   # Set proper ownership
-  chown -R nomado:nomado /home/nomado/testnet
+  chown -R $DEFAULT_USER:$DEFAULT_USER /home/$DEFAULT_USER/testnet
 
   echo "Testnet directory setup successfully!"
   echo ""
   echo "IMPORTANT: Finish building Kovri testnet after installing Arkeo to disk"
   echo ""
   echo "Once Arkeo is installed, run the following command as the arkeo user:"
-  echo "  $ /home/nomado/build-kovri-testnet"
+  echo "  $ /home/$DEFAULT_USER/build-kovri-testnet"
   echo ""
 
   CONTINUE_BUILD=""
@@ -131,7 +140,7 @@ setup_kovri_testnet() # @author - oneiric
 }
 
 # Clone, compile, and install Monero
-setup_monero()  # @author - oneiric
+setup_monero()
 {
   # Clone latest Monero repo if it doesn't exist
   if [[ ! -d /usr/src/monero ]]; then
@@ -150,7 +159,7 @@ setup_monero()  # @author - oneiric
 }
 
 # Download and install Monero GUI, or build from source
-setup_monero_gui() # @author - oneiric
+setup_monero_gui()
 {
   BUILD_GUI_AUR=""
   BUILD_GUI_GIT=""
@@ -168,9 +177,9 @@ setup_gui_aur()
     git clone https://aur.archlinux.org/monero-gui-bin.git /usr/src/monero-gui-bin
   fi
 
-  chown -R nomado:nomado /usr/src/monero-gui-bin
+  chown -R $DEFAULT_USER:$DEFAULT_USER /usr/src/monero-gui-bin
   cd /usr/src/monero-gui-bin && git pull
-  sudo -u nomado makepkg -i PKGBUILD
+  sudo -u $DEFAULT_USER makepkg -i PKGBUILD
 }
 
 # Clone, compile, and install Monero GUI from git repo
@@ -180,7 +189,7 @@ setup_gui_git()
     git clone https://github.com/monero-project/monero-gui /usr/src/monero-gui
   fi
 
-  chown -R nomado:nomado /usr/src/monero-gui
+  chown -R $DEFAULT_USER:$DEFAULT_USER /usr/src/monero-gui
   cd /usr/src/monero-gui && git pull
   if [[ -d /usr/src/monero ]]; then
     rm /usr/src/monero-gui/monero
@@ -189,6 +198,7 @@ setup_gui_git()
   make -j$(nproc) debug
 }
 
+install_custom_packages
 setup_kovri
 setup_monero
 setup_monero_gui
