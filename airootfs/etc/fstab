@@ -1,0 +1,2 @@
+# Only allow unprivileged users to view their own processes
+proc  /proc proc  nosuid,nodev,noexec,hidepid=2,gid=proc  0 0
